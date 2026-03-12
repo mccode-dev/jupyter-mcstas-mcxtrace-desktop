@@ -7,7 +7,6 @@ dependencies:
   - jupytext
   - nodejs
   - mcstas=3.6.8
-  - mcxtrace=3.6.8
   - mccode-antlr
   - mcstasscript
   - rsync
