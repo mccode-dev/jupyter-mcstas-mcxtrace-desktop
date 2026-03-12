@@ -29,6 +29,7 @@ RUN echo deb [trusted=yes] https://packages.mccode.org/debian stable main > /etc
    firefox \
    mcstas-suite-python-legacy \
    mcstas-suite-perl-legacy \
+   libopenmpi-dev \
     # Disable the automatic screenlock since the account password is unknown
  && apt-get -y -qq remove xfce4-screensaver \
     # chown $HOME to workaround that the xorg installation creates a
@@ -41,7 +42,12 @@ RUN echo deb [trusted=yes] https://packages.mccode.org/debian stable main > /etc
 
 # Build McStas 1.12c
 RUN wget http://download.mcstas.org/mcstas-1.x/mcstas-1.12c-src.tar.gz && tar xzf mcstas-1.12c-src.tar.gz && cd mcstas-1.12c \
- && ./configure --prefix=/usr/local/mcstas-1.12c && make && make install && cd - && rm -rf mcstas-1.12c
+ && ./configure --prefix=/usr/local/mcstas-1.12c && make && make install && cd - && rm -rf mcstas-1.12c mcstas-1.12c-src.tar.gz \
+ && cd /usr/local/bin && wget https://download.mcstas.org/mcstas-1.x/mcstas-1.12c-environment \
+ && wget https://download.mcstas.org/mcstas-2.x/mcstas-2.7.2-environment \
+ && chmod a+x mcstas-1.12c-environment && cd - && cd /usr/local/mcstas-1.12c/lib/mcstas/tools/perl/ \
+ && mv mcstas_config.perl mcstas_config.perl.BAK && wget https://download.mcstas.org/mcstas-1.x/mcstas_config.perl \
+ && cd -
 
 # Install a VNC server, either TigerVNC (default) or TurboVNC
 ARG vncserver=tigervnc
@@ -73,19 +79,19 @@ RUN if [ "${vncserver}" = "turbovnc" ]; then \
 
 ADD . /opt/install
 RUN cd /opt/install && \
-    fix-permissions /opt/install 
+    fix-permissions /opt/install
 
 USER $NB_USER
 
 RUN cd /opt/install && \
-   mamba env update -n base --file environment.yml && \
-   mamba clean -all -y && /opt/conda/bin/mcdoc -i && /opt/conda/bin/mxdoc -i
+   conda env update -n base --file environment.yml && \
+   conda clean -all -y && /opt/conda/bin/mcdoc -i 
 
 COPY --chown=$NB_UID:$NB_GID McStasScript/configuration.yaml /tmp
 
 RUN find /opt/conda/lib/ -type d -name mcstasscript -exec cp /tmp/configuration.yaml \{\} \;
 
 RUN . /opt/conda/bin/activate && \
-    mamba install -y -q "nodejs>=22" && \
+    conda install -y -q "nodejs>=22" && \
     pip install /opt/install
 
