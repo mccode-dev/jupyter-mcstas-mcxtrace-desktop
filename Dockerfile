@@ -2,7 +2,8 @@ FROM quay.io/jupyter/base-notebook:2026-02-23
 
 USER root
 
-RUN apt-get -y -qq update && apt-get -y -qq install software-properties-common && add-apt-repository ppa:mozillateam/ppa \
+RUN echo deb [trusted=yes] https://packages.mccode.org/debian stable main > /etc/apt/sources.list.d/mccode.list \
+&& apt-get -y -qq update && apt-get -y -qq install software-properties-common && add-apt-repository ppa:mozillateam/ppa \
 && echo 'Package: *' > /etc/apt/preferences.d/mozilla-firefox \
 && echo Pin: release o=LP-PPA-mozillateam >> /etc/apt/preferences.d/mozilla-firefox \
 && echo Pin-Priority: 1001 >> /etc/apt/preferences.d/mozilla-firefox \
@@ -26,6 +27,8 @@ RUN apt-get -y -qq update && apt-get -y -qq install software-properties-common &
    octave \
    git \
    firefox \
+   mcstas-suite-python-legacy \
+   mcstas-suite-perl-legacy \
     # Disable the automatic screenlock since the account password is unknown
  && apt-get -y -qq remove xfce4-screensaver \
     # chown $HOME to workaround that the xorg installation creates a
@@ -35,6 +38,10 @@ RUN apt-get -y -qq update && apt-get -y -qq install software-properties-common &
  && chown -R $NB_UID:$NB_GID $HOME /opt/install \
  && apt-get -y -qq clean \
  && rm -rf /var/lib/apt/lists/*
+
+# Build McStas 1.12c
+RUN wget http://download.mcstas.org/mcstas-1.x/mcstas-1.12c-src.tar.gz && tar xzf mcstas-1.12c-src.tar.gz && cd mcstas-1.12c \
+ && ./configure --prefix=/usr/local/mcstas-1.12c && make && make install && cd - && rm -rf mcstas-1.12c
 
 # Install a VNC server, either TigerVNC (default) or TurboVNC
 ARG vncserver=tigervnc
