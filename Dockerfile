@@ -47,8 +47,13 @@ RUN wget http://download.mcstas.org/mcstas-1.x/mcstas-1.12c-src.tar.gz && tar xz
  && wget https://download.mcstas.org/mcstas-2.x/mcstas-2.7.2-environment \
  && chmod a+x mcstas-1.12c-environment && cd - && cd /usr/local/mcstas-1.12c/lib/mcstas/tools/perl/ \
  && mv mcstas_config.perl mcstas_config.perl.BAK && wget https://download.mcstas.org/mcstas-1.x/mcstas_config.perl \
- && cd -
-
+ && cd - && mkdir -p /etc/skel/Desktop && cd /etc/skel/Desktop && wget https://download.mcstas.org/Docker/README.TXT \
+ && cd - && cd /usr/local/mcstas-1.12c/bin && ln -s mcdisplay mcdisplay.pl && ln -s mcplot mcplot.pl && ln mcgui mcgui.pl \
+ && cd - && cd /opt && wget https://www.opencascade.com/sites/default/files/private/occt/applications/cad_assistant_1.6.0_2021-10-05_lin64.appimage \
+ && chmod a+x cad_assistant_1.6.0_2021-10-05_lin64.appimage && ./cad_assistant_1.6.0_2021-10-05_lin64.appimage --appimage-extract \
+ && mv squashfs-root cad_assistant && rm cad_assistant_1.6.0_2021-10-05_lin64.appimage && ln -s $PWD/cad_assistant/AppRun /usr/local/bin/cad_assistant \
+ && cd - && chown -R $NB_UID:$NB_GID $HOME /opt/cad_assistant
+ 
 # Install a VNC server, either TigerVNC (default) or TurboVNC
 ARG vncserver=tigervnc
 RUN if [ "${vncserver}" = "tigervnc" ]; then \
@@ -93,5 +98,6 @@ RUN find /opt/conda/lib/ -type d -name mcstasscript -exec cp /tmp/configuration.
 
 RUN . /opt/conda/bin/activate && \
     conda install -y -q "nodejs>=22" && \
-    pip install /opt/install
+    pip install /opt/install && \
+    mkdir -p Desktop && cp /etc/skel/Desktop/README.TXT Desktop/README.TXT
 
